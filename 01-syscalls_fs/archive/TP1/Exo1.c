@@ -14,7 +14,7 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<getopt.h>
-#include <dirent.h> 
+
 #include<fcntl.h>
 
 #define STDOUT 1
@@ -159,6 +159,8 @@ int main(int argc, char** argv)
     }
   } 
 
+  
+
   /**
    * Checking binary requirements
    * (could defined in a separate function)
@@ -168,7 +170,7 @@ int main(int argc, char** argv)
   int descOutput;
 
   descInput = open(bin_input_param,O_RDONLY);
-  descOutput = open(bin_output_param,O_WRONLY);
+  descOutput = open(bin_output_param,O_CREAT);
 
   int nbRead = 0;
   char *c = malloc(4096*sizeof(char));
@@ -197,49 +199,35 @@ int main(int argc, char** argv)
 
   // Business logic must be implemented at this point
 
-  char *curr_dir = NULL; 
-  DIR *dp = NULL; 
-  struct dirent *dptr = NULL; 
-  unsigned int count = 0; 
+  /* File Copy*/
+  int descInput;
+  int descOutput;
 
-  // Get the value of environment variable PWD 
-  curr_dir = getenv("PWD"); 
-  if(NULL == curr_dir) 
-  { 
-      printf("\n ERROR : Could not get the working directory\n"); 
-      return -1; 
-  } 
+  descInput = open(bin_input_param,O_RDONLY);
+  if(descInput < 0){
+    perror(strerror(descInput));
+  }
+  descOutput = open(bin_output_param,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH); //Create if not exists, give rights and open write only
+  if(descOutput < 0){
+    perror(strerror(descOutput));
+  }
 
-  // Open the current directory 
-  dp = opendir((const char*)curr_dir); 
-  if(NULL == dp) 
-  { 
-      printf("\n ERROR : Could not open the working directory\n"); 
-      return -1; 
-  } 
+  int nbRead = 0;
+  int writeFlag = 0;
+  char *c = malloc(4096*sizeof(char));
 
-  printf("\n"); 
-  // Go through and display all the names (files or folders) 
-  // Contained in the directory. 
-  for(count = 0; NULL != (dptr = readdir(dp)); count++) 
-  { 
-    struct stat fileStat;
-    stat(dp,&fileStat);
-      printf("%s\t",dptr->d_name); 
-      printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
-      printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
-      printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
-      printf( (fileStat.st_mode & S_IXUSR) ? "x" : "-");
-      printf( (fileStat.st_mode & S_IRGRP) ? "r" : "-");
-      printf( (fileStat.st_mode & S_IWGRP) ? "w" : "-");
-      printf( (fileStat.st_mode & S_IXGRP) ? "x" : "-");
-      printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
-      printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
-      printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
-      printf("\n");
-  } 
-  printf("\n %u", count); 
+// Custom EXO 1 Part
+  while((nbRead = (read(descInput,c,4096*sizeof(char)))) != 0){
+    if((writeFlag = write(descOutput,c,nbRead)) < 0){
+      perror(strerror(writeFlag));
+    }
+  }
+  if(nbRead < 0){
+    perror(strerror(nbRead));
+  }
 
+  close(descInput);
+  close(descOutput);
 
   // Freeing allocated data
   free_if_needed(bin_input_param);
