@@ -159,8 +159,8 @@ int main(int argc, char** argv)
       dup2(fd[READ_OUT], 0);
 
       // Création du fichier dans /dev/null
-      int fd = open("/dev/null", O_WRONLY);
-      dup2(fd, 1);
+      int desc = open("/dev/null", O_WRONLY);
+      dup2(desc, 1);
 
       // Execute la commande grep root
       execlp ("grep", "grep", "^root", (char*)NULL);
