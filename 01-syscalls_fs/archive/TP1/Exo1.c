@@ -159,6 +159,8 @@ int main(int argc, char** argv)
     }
   } 
 
+  
+
   /**
    * Checking binary requirements
    * (could defined in a separate function)
@@ -214,6 +216,7 @@ int main(int argc, char** argv)
   int writeFlag = 0;
   char *c = malloc(4096*sizeof(char));
 
+// Custom EXO 1 Part
   while((nbRead = (read(descInput,c,4096*sizeof(char)))) != 0){
     if((writeFlag = write(descOutput,c,nbRead)) < 0){
       perror(strerror(writeFlag));

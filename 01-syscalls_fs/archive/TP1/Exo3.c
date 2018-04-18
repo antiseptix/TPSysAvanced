@@ -14,8 +14,9 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<getopt.h>
-
+#include <dirent.h> 
 #include<fcntl.h>
+#include <time.h>
 
 #define STDOUT 1
 #define STDERR 2
@@ -197,41 +198,58 @@ int main(int argc, char** argv)
 
   // Business logic must be implemented at this point
 
-  int descInput;
-  int descOutput;
+  char *curr_dir = NULL; 
+  DIR *dp = NULL; 
+  struct dirent *dptr = NULL; 
+  unsigned int count = 0; 
 
-  descInput = open(bin_input_param,O_RDONLY);
-  if(descInput < 0){
-    perror(strerror(descInput));
-  }
-  descOutput = open(bin_output_param,O_WRONLY);
-  if(descOutput < 0){
-    perror(strerror(descOutput));
-  }
+  // Get the value of environment variable PWD 
+  curr_dir = getenv("PWD"); 
+  if(NULL == curr_dir) 
+  { 
+      printf("\n ERROR : Could not get the working directory\n"); 
+      return -1; 
+  } 
 
-  char *c = malloc(4096*sizeof(char));
+  // Open the current directory 
+  dp = opendir((const char*)curr_dir); 
+  if(NULL == dp) 
+  { 
+      printf("\n ERROR : Could not open the working directory\n"); 
+      return -1; 
+  } 
 
-  int filesize;
-  if((filesize = lseek(descInput, (off_t) 0, SEEK_END)) < 0){
-    perror(strerror(filesize));
-  }; //filesize is lastby +offset
-  int i;
-  int n;
-  int writeErr;
-   for (i = filesize - 1; i >= 0; i--) { //read byte by byte from end
-       lseek(descInput, (off_t) i, SEEK_SET);
-       if((n = read(descInput, c, 1)) < 0){
-         perror(strerror(n));
-       }      
-       printf("%c",n);
-       fflush(stdout); /* force it to go out */
-       if((writeErr = write(1,c,n)) < 0){
-        perror(strerror(writeErr));
-       }
-   }
+  printf("\n"); 
+  // Go through and display all the names (files or folders) 
+  // Contained in the directory. 
+  for(count = 0; NULL != (dptr = readdir(dp)); count++) 
+  { 
+    char* nameFile = dptr->d_name;
+    
+    struct stat fileStat;
+    stat(nameFile,&fileStat);
+    
+    
+    printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
+    printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
+    printf("%s",nameFile);
+    printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXUSR) ? "x" : "-");
+    printf( (fileStat.st_mode & S_IRGRP) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWGRP) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXGRP) ? "x" : "-");
+    printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
 
-  close(descInput);
-  close(descOutput);
+    printf("-%lld - ",(long long) fileStat.st_size);
+    printf("%ld:%ld",(long) fileStat.st_uid, (long) fileStat.st_gid);
+    printf(" @ %s ", ctime(&fileStat.st_mtime));
+    
+    //printf("\n");
+  } 
+  //printf("\n %u", count); 
+
 
   // Freeing allocated data
   free_if_needed(bin_input_param);

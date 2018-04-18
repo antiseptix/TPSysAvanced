@@ -14,7 +14,7 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<getopt.h>
-#include <dirent.h> 
+
 #include<fcntl.h>
 
 #define STDOUT 1
@@ -171,10 +171,11 @@ int main(int argc, char** argv)
   descOutput = open(bin_output_param,O_WRONLY);
 
   int nbRead = 0;
-  char *c = malloc(4096*sizeof(char));
+  char *c = calloc(4096,sizeof(char));
 
   while((nbRead = (read(descInput,c,4096*sizeof(char)))) != 0){
     write(descOutput,c,nbRead);
+    
   }
 
   close(descInput);
@@ -197,48 +198,42 @@ int main(int argc, char** argv)
 
   // Business logic must be implemented at this point
 
-  char *curr_dir = NULL; 
-  DIR *dp = NULL; 
-  struct dirent *dptr = NULL; 
-  unsigned int count = 0; 
+  int descInput;
+  int descOutput;
 
-  // Get the value of environment variable PWD 
-  curr_dir = getenv("PWD"); 
-  if(NULL == curr_dir) 
-  { 
-      printf("\n ERROR : Could not get the working directory\n"); 
-      return -1; 
-  } 
+  descInput = open(bin_input_param,O_RDONLY);
+  if(descInput < 0){
+    perror(strerror(descInput));
+  }
+  descOutput = open(bin_output_param,O_WRONLY);
+  if(descOutput < 0){
+    perror(strerror(descOutput));
+  }
 
-  // Open the current directory 
-  dp = opendir((const char*)curr_dir); 
-  if(NULL == dp) 
-  { 
-      printf("\n ERROR : Could not open the working directory\n"); 
-      return -1; 
-  } 
+  char *c = calloc(4096,sizeof(char));
 
-  printf("\n"); 
-  // Go through and display all the names (files or folders) 
-  // Contained in the directory. 
-  for(count = 0; NULL != (dptr = readdir(dp)); count++) 
-  { 
-    struct stat fileStat;
-    stat(dp,&fileStat);
-      printf("%s\t",dptr->d_name); 
-      printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
-      printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
-      printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
-      printf( (fileStat.st_mode & S_IXUSR) ? "x" : "-");
-      printf( (fileStat.st_mode & S_IRGRP) ? "r" : "-");
-      printf( (fileStat.st_mode & S_IWGRP) ? "w" : "-");
-      printf( (fileStat.st_mode & S_IXGRP) ? "x" : "-");
-      printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
-      printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
-      printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
-      printf("\n");
-  } 
-  printf("\n %u", count); 
+// Custom EXO 2 Part
+  int filesize;
+  if((filesize = lseek(descInput, (off_t) 0, SEEK_END)) < 0){
+    perror(strerror(filesize));
+  }; //filesize is lastby +offset
+  int i;
+  int n;
+  int writeErr;
+   for (i = filesize - 1 ; i >= 0 ; i--) { //read byte by byte from end
+       lseek(descInput, (off_t) i, SEEK_SET);
+       if((n = read(descInput, c, 1)) < 0){
+         perror(strerror(n));
+       }      
+       //printf("%c",n);
+       fflush(stdout); /* force it to go out */
+       if((writeErr = write(1,c,n)) < 0){
+        perror(strerror(writeErr));
+       }
+   }
+  printf("\n");
+  close(descInput);
+  close(descOutput);
 
 
   // Freeing allocated data
