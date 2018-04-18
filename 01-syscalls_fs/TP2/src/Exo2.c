@@ -1,12 +1,3 @@
-/**
- * \file skeleton.c
- * \brief Basic parsing options skeleton.
- * \author Pierre L. <pierre1.leroy@orange.com>
- * \version 0.1
- * \date 10 septembre 2016
- *
- * Basic parsing options skeleton exemple c file.
- */
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>

@@ -8,6 +8,7 @@
 #include<getopt.h>
 #include <dirent.h> 
 #include<fcntl.h>
+#include <unistd.h>
 
 #define STDOUT 1
 #define STDERR 2
@@ -107,10 +108,11 @@ int main(int argc, char** argv)
 {
 
   // Business logic must be implemented at this point
-  printf("test\n");
-    pid_t pid;
+    pid_t pidF1;
+    pid_t pidF2;
     int fd[2];
-    int status;
+    int statusF1;
+    int statusF2;
 
     pipe(fd);
     // Test echec pipe
@@ -125,39 +127,63 @@ int main(int argc, char** argv)
     
     
     // Test si fils cree
-    if ((pid = fork()) < 0)
+    if ((pidF1 = fork()) < 0)
     {
         perror("Erreur creation fork\n");
         return 1;
     }
 
     //Fils
-    if(pid==0)
+    if(pidF1==0)
     {
-        dup2(fd[WRITE_IN], 1);
         close(fd[READ_OUT]);
+        dup2(fd[WRITE_IN], 1);
         close(fd[WRITE_IN]);
-        execlp("ps","ps", "eau","|","grep","\"^root\"",">","/dev/null","&&","echo","\"root est connecté\"", (char*) NULL);//,"|", "grep \"root\"", ">", "/dev/null", "&&", "echo \"root est connecté\"");
-        fprintf(stderr, "Failed to execute '%s'\n", "ps eau");
+        execlp("ps","ps", "eau",(char*) NULL);
+        
+        //"|","grep","\"^root\"",">","/dev/null","&&","echo","\"root est connecté\"", (char*) NULL);//,"|", "grep \"root\"", ">", "/dev/null", "&&", "echo \"root est connecté\"");
+        perror("Erreur sur la commande ps eau\n");
         exit(1);
+    }
+
+    // Test si fils cree
+    if ((pidF2 = fork()) < 0)
+    {
+        perror("Erreur creation fork\n");
+        return 1;
+    }
+    if (pidF2 == 0 )
+    {
+      char buffer[1024];
+      close(fd[WRITE_IN]);
+      dup2(fd[READ_OUT], 0);
+
+      // Création du fichier dans /dev/null
+      int fd = open("/dev/null", O_WRONLY);
+      dup2(fd, 1);
+
+      // Execute la commande grep root
+      execlp ("grep", "grep", "^root", (char*)NULL);
+
+      // Récupère les erreurs
+      perror("Erreur GREP : ");
+      exit(1);
     }
     //Pere
     else
     {   
-        waitpid(pid, &status, 0);
+        //waitpid(pid, &status, 0);
         
         close(fd[WRITE_IN]);
-        
-        char reading_buf[1]; // Buffer de lecture
-        // Lecture tant qu'il y a des donnees
-    //printf("test\n");
-        while (read(fd[READ_OUT], reading_buf, 1) > 0)
-        {
-            //printf("test\n");
-            write(1, reading_buf, 1); // Ecrit dans sdout ce qui est envoye par le fils
-        }
         close(fd[READ_OUT]);
-    // }
+        
+        wait(&statusF1);
+        wait(&statusF2);
+
+      //Verification fin processus
+      if(WIFEXITED(statusF1) && WIFEXITED(statusF2) && WEXITSTATUS(statusF1) == 0 && WEXITSTATUS(statusF2) == 0 )
+        write(1, "root est connecté\n", 19);
+
     }
    
 

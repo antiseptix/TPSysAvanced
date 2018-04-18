@@ -189,45 +189,6 @@ int main(int argc, char** argv)
         break;
     }
   } 
-
-  /**
-   * Checking binary requirements
-   * (could defined in a separate function)
-   */
-   /**
-  if (bin_input_param == NULL || bin_output_param == NULL)
-  {  int descInput;
-  int descOutput;
-
-  descInput = open(bin_input_param,O_RDONLY);
-  descOutput = open(bin_output_param,O_WRONLY);
-
-  int nbRead = 0;
-  char *c = malloc(4096*sizeof(char));
-
-  while((nbRead = (read(descInput,c,4096*sizeof(char)))) != 0){
-    write(descOutput,c,nbRead);
-  }
-
-  close(descInput);
-  close(descOutput);
-    dprintf(STDERR, "Bad usage! See HELP [--help|-h]\n");
-
-    // Freeing allocated data
-    free_if_needed(bin_input_param);
-    free_if_needed(bin_output_param);
-    // Exiting with a failure ERROR CODE (== 1)
-    exit(EXIT_FAILURE);
-  }
-  */
-
-
-  /* Printing params
-  dprintf(1, "** PARAMS **\n%-8s: %s\n%-8s: %s\n%-8s: %d\n", 
-          "input",   bin_input_param, 
-          "output",  bin_output_param, 
-          "verbose", is_verbose_mode);
-*/
   // Business logic must be implemented at this point
 
   /*Init Random Array*/
