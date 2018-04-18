@@ -1,2 +1,2 @@
 all:  
-	gcc -o bin/Exo src/Exo.c -w
+	gcc -o bin/ExoCompteur src/ExoCompteur.c -w

@@ -1,2 +1,2 @@
 all:  
-	gcc -o bin/Exo src/Exo.c -w -pthread
+	gcc -o bin/ExoThreadSort src/ExoThreadSort.c -w -pthread
