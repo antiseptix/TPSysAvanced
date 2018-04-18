@@ -170,7 +170,7 @@ int main(int argc, char** argv)
   int descOutput;
 
   descInput = open(bin_input_param,O_RDONLY);
-  descOutput = open(bin_output_param,O_WRONLY);
+  descOutput = open(bin_output_param,O_CREAT);
 
   int nbRead = 0;
   char *c = malloc(4096*sizeof(char));
@@ -207,7 +207,7 @@ int main(int argc, char** argv)
   if(descInput < 0){
     perror(strerror(descInput));
   }
-  descOutput = open(bin_output_param,O_WRONLY);
+  descOutput = open(bin_output_param,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH); //Create if not exists, give rights and open write only
   if(descOutput < 0){
     perror(strerror(descOutput));
   }

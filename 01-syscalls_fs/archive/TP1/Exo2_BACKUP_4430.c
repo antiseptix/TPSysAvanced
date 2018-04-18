@@ -13,9 +13,8 @@
 #include<errno.h>
 #include<sys/stat.h>
 #include<sys/types.h>
-#include <sys/wait.h>
 #include<getopt.h>
-#include <dirent.h> 
+
 #include<fcntl.h>
 
 #define STDOUT 1
@@ -24,10 +23,9 @@
 #define MAX_PATH_LENGTH 4096
 
 
-#define USAGE_SYNTAX "[OPTIONS] -i INPUT -o OUTPUT"
+#define USAGE_SYNTAX "[OPTIONS] -i INPUT"
 #define USAGE_PARAMS "OPTIONS:\n\
   -i, --input  INPUT_FILE  : input file\n\
-  -o, --output OUTPUT_FILE : output file\n\
 ***\n\
   -v, --verbose : enable *verbose* mode\n\
   -h, --help    : display this help\n\
@@ -164,23 +162,28 @@ int main(int argc, char** argv)
    * Checking binary requirements
    * (could defined in a separate function)
    */
-   /**
-  if (bin_input_param == NULL || bin_output_param == NULL)
-  {  int descInput;
-  int descOutput;
+  if (bin_input_param == NULL)
+  {  
+    int descInput;
 
-  descInput = open(bin_input_param,O_RDONLY);
-  descOutput = open(bin_output_param,O_WRONLY);
 
+<<<<<<< HEAD:01-syscalls_fs/archive/TP1/Exo2.c
   int nbRead = 0;
-  char *c = malloc(4096*sizeof(char));
+  char *c = calloc(4096,sizeof(char));
 
   while((nbRead = (read(descInput,c,4096*sizeof(char)))) != 0){
     write(descOutput,c,nbRead);
+    
   }
+=======
+    descInput = open(bin_input_param,O_RDONLY);
 
-  close(descInput);
-  close(descOutput);
+>>>>>>> 47d3559560b69b3f1c6ced5756b0aa741bf4b841:01-syscalls_fs/archive/TP1/Exo2.c
+
+    int nbRead = 0;
+
+    close(descInput);
+
     dprintf(STDERR, "Bad usage! See HELP [--help|-h]\n");
 
     // Freeing allocated data
@@ -189,44 +192,50 @@ int main(int argc, char** argv)
     // Exiting with a failure ERROR CODE (== 1)
     exit(EXIT_FAILURE);
   }
-  */
 
 
-  /* Printing params
-  dprintf(1, "** PARAMS **\n%-8s: %s\n%-8s: %s\n%-8s: %d\n", 
+  // Printing params
+  dprintf(1, "** PARAMS **\n%-8s: %s\n%-8s: %d\n", 
           "input",   bin_input_param, 
-          "output",  bin_output_param, 
           "verbose", is_verbose_mode);
-*/
+
   // Business logic must be implemented at this point
-  int pid;
 
+  int descInput;
 
-  pid = fork() ;
-
-  if (pid == 0){
-    int myPID = getpid();
-    printf("Je suis le fils %d, mon père :%d\n",myPID,getppid()) ;
-    close(STDOUT);
-    int fd = open("/tmp/proc-exerciseXXXXXX", O_CREAT |O_TRUNC | O_WRONLY,0222);
-    //int fd = mkstemp("/tmp/proc-exerciseXXXXXX");
-    printf("Descripteur de Fichier : %d",fd);
-    execv("../archive/TP2/affiche",argv);
-    close(fd);
-    exit(myPID % 10);
+  descInput = open(bin_input_param,O_RDONLY);
+  if(descInput < 0){
+    perror(strerror(descInput));
   }
-  else {
-    printf("Je suis le père %d, mon fils :%d\n",getpid(),pid) ;
-    int childExitStatus = 0;
-    waitpid( pid, &childExitStatus, 0);
-    printf("Code Retour du Fils %d\n",  WEXITSTATUS(childExitStatus));
-    printf("That's all folks !");
-    exit(0) ;
-  }
+
+  char *c = calloc(4096,sizeof(char));
+
+// Custom EXO 2 Part
+  int filesize;
+  if((filesize = lseek(descInput, (off_t) 0, SEEK_END)) < 0){
+    perror(strerror(filesize));
+  }; //filesize is lastby +offset
+  int i;
+  int n;
+  int writeErr;
+   for (i = filesize - 1 ; i >= 0 ; i--) { //read byte by byte from end
+       lseek(descInput, (off_t) i, SEEK_SET);
+       if((n = read(descInput, c, 1)) < 0){
+         perror(strerror(n));
+       }      
+       //printf("%c",n);
+       fflush(stdout); /* force it to go out */
+       if((writeErr = write(1,c,n)) < 0){
+        perror(strerror(writeErr));
+       }
+   }
+  printf("\n");
+  close(descInput);
+
+
 
   // Freeing allocated data
   free_if_needed(bin_input_param);
-  free_if_needed(bin_output_param);
 
 
   return EXIT_SUCCESS;

@@ -167,18 +167,8 @@ int main(int argc, char** argv)
     int descInput;
 
 
-<<<<<<< HEAD:01-syscalls_fs/archive/TP1/Exo2.c
-  int nbRead = 0;
-  char *c = calloc(4096,sizeof(char));
-
-  while((nbRead = (read(descInput,c,4096*sizeof(char)))) != 0){
-    write(descOutput,c,nbRead);
-    
-  }
-=======
     descInput = open(bin_input_param,O_RDONLY);
 
->>>>>>> 47d3559560b69b3f1c6ced5756b0aa741bf4b841:01-syscalls_fs/archive/TP1/Exo2.c
 
     int nbRead = 0;
 
@@ -231,7 +221,6 @@ int main(int argc, char** argv)
    }
   printf("\n");
   close(descInput);
-
 
 
   // Freeing allocated data
